@@ -737,6 +737,13 @@ gentity_t* G_DropWeapon ( gentity_t* ent, weapon_t weapon, int pickupDelay )
         removeWeaponFromClient(ent, weapon, qfalse, WP_KNIFE);
         G_printGametypeMessageToAll("%s has disappeared!", weapon == WP_M3A1_SUBMACHINEGUN ? "Telegun" : "Stungun");
         return NULL;
+    } 
+    if (!isCurrentGametype(GT_HNS) && g_enableKillStreakRewards.integer) {
+        // killstreak rewards can't be shared
+        if (weapon == WP_MM1_GRENADE_LAUNCHER || weapon == WP_L2A2_GRENADE || weapon == WP_M15_GRENADE) {
+            removeWeaponFromClient(ent, weapon, qfalse, WP_KNIFE);
+            return NULL;
+        }
     }
 
     // find the item type for this weapon
@@ -1022,6 +1029,7 @@ void SaveRegisteredItems( void )
     string[ bg_numItems ] = 0;
 
     Com_Printf( "%i items registered\n", count );
+    Com_Printf( "cs_items: %s \n", string );
     trap_SetConfigstring(CS_ITEMS, string);
 }
 

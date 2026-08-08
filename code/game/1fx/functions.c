@@ -5783,8 +5783,8 @@ void HZ_Claymore(gentity_t* ent)
     for (i = 0; i < numListedEntities; i++) {
         tent = &g_entities[entityList[i]];
 
-        // Make sure the client coming near is a zombie.
-        if (tent && tent->client && tent->client->sess.team == TEAM_BLUE) {
+        // Make sure the client coming near is an enemy.
+        if (tent && tent->client && (tent->client->sess.team == TEAM_FREE && tent->client != ent->parent->client || tent->client->sess.team != ent->parent->client->sess.team)) {
             distance = (int)(DistanceSquared(ent->r.currentOrigin, tent->r.currentOrigin) / 100);
 
             // Keep track of the closest client.
@@ -5796,24 +5796,32 @@ void HZ_Claymore(gentity_t* ent)
     }
 
     if (closestClient < 100) {
-        // Explode when a zombie gets too near.
+        // Explode when an enemy gets too near.
         HZ_claymoreExplode(ent);
     }
     else {
-        // Check if we need to let zombies hear the grenade, and let all players see the flashing red dot.
+        // Add a small particle effect.
         if (level.time >= ent->speed || (closestClient + closestClient / 2 < ent->up)) {
             VectorCopy(ent->r.currentOrigin, mins);
             mins[2] += 5;
 
-            // Play the effect.
-            G_PlayEffect(G_EffectIndex("red_dot"), mins, ent->r.currentAngles);
+            // Play the effect, only to member of the enemy team
+            team_t team;
+            if (ent->parent->client->sess.team == TEAM_BLUE){
+                team = TEAM_RED;
+            } else if (ent->parent->client->sess.team == TEAM_BLUE){
+                team = TEAM_BLUE;
+            } else {
+                team = TEAM_FREE;
+            }
+            gentity_t* dotEfx = G_PlayTeamEffect(G_EffectIndex("red_dot"), mins, ent->r.currentAngles, ent->parent->client->sess.team);
+            if (team == TEAM_FREE){
+                dotEfx->r.singleClient = ent->parent->client - level.clients;
+                dotEfx->r.svFlags |= SVF_NOTSINGLECLIENT;
+
+            }
             ent->speed = level.time + closestClient; // When the next effect/sound check is.
             ent->up = closestClient; // We register the previous closest distance this way.
-
-            // Broadcast the sound to players.
-            for (i = 0; i < count; i++) {
-                G_ClientSound(&g_entities[clientsClose[i]], G_SoundIndex("sound/misc/events/micro_ding.mp3"));
-            }
         }
 
         ent->nextthink = level.time + (closestClient < 200) ? closestClient : 200;

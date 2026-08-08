@@ -1353,6 +1353,7 @@ void    G_InitGentity( gentity_t *e );
 gentity_t   *G_Spawn (void);
 gentity_t *G_TempEntity( vec3_t origin, int event );
 void    G_PlayEffect(int fxID, vec3_t org, vec3_t ang);
+gentity_t *G_PlayTeamEffect(int fxID, vec3_t org, vec3_t ang, team_t team);
 void    G_SetHUDIcon ( int index, int icon );
 void    G_Sound( gentity_t *ent, int channel, int soundIndex );
 void    G_SoundAtLoc( vec3_t loc, int channel, int soundIndex );
@@ -1915,6 +1916,7 @@ extern vmCvar_t     g_useSockets;
 extern vmCvar_t     g_allowFloatSpec;
 extern vmCvar_t     g_allowAdminsToSpec;
 extern vmCvar_t     vote_skiptomap;
+extern vmCvar_t     g_enableKillStreakRewards;
 
 
 //extern vmCvar_t     g_leanType;

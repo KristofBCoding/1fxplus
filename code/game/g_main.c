@@ -334,6 +334,9 @@ vmCvar_t    g_ladderType;
 vmCvar_t    g_BurnEffect;
 vmCvar_t    g_EnableKnifeBox;
 
+vmCvar_t    g_enableKillStreakRewards;
+
+
 static cvarTable_t gameCvarTable[] =
 {
     // don't override the cheat state set by the system
@@ -675,6 +678,7 @@ static cvarTable_t gameCvarTable[] =
     { &g_allowFloatSpec, "g_allowFloatSpec", "0", CVAR_ARCHIVE, 0.0f, 0.0f, 0, qfalse },
     { &g_allowAdminsToSpec, "g_allowAdminsToSpec", "1", CVAR_ARCHIVE, 0.0f, 0.0f, 0, qfalse },
     { &vote_skiptomap, "vote_skiptomap", "3", CVAR_ARCHIVE, 0.0f, 0.0f, 0, qfalse },
+    { &g_enableKillStreakRewards, "g_enableKillStreakRewards", "0",   CVAR_ARCHIVE,    0.0f,    0.0f,  0, qfalse },
 };
 
 // bk001129 - made static to avoid aliasing
@@ -1497,8 +1501,11 @@ void G_InitGame( int levelTime, int randomSeed, int restart )
         Q_strncpyz(level.hns.cagewinner, "none", sizeof(level.hns.cagewinner));
     }
 
-    // mm1 needs to be pre-registered to make sure clients can see the missile effects
-    if (isCurrentGametype(GT_HNZ)) {
+    if (isCurrentGametype(GT_HNZ) || g_enableKillStreakRewards.integer) {
+        // mm1 needs to be pre-registered to make sure clients can see the missile effects
+        // Registering the weapon does sent it over via configstring,  
+        // but it looks like that doesn't make the missile trail, efx etc load for clients.
+        // TODO: see if there's a cleaner way to make the client load those assets.
         RegisterItem(BG_FindWeaponItem( WP_MM1_GRENADE_LAUNCHER ));
     }
 

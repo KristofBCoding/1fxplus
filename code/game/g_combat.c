@@ -78,7 +78,13 @@ void TossClientItems( gentity_t *self )
         if (weapon > WP_KNIFE && weapon < WP_NUM_WEAPONS &&
             (self->client->ps.ammo[weaponData[weapon].attack[ATTACK_NORMAL].ammoIndex] + self->client->ps.clip[weapon]))
         {
-            G_DropWeapon(self, weapon, 0);
+            if (g_enableKillStreakRewards.integer) {
+                if (weapon != WP_L2A2_GRENADE && weapon != WP_M15_GRENADE || weapon != WP_MM1_GRENADE_LAUNCHER) {
+                    G_DropWeapon(self, weapon, 0);
+                }
+            } else {
+                G_DropWeapon(self, weapon, 0);
+            }
         }
     }
 
@@ -662,9 +668,48 @@ void player_die(
 
             attacker->client->lastKillTime = level.time;
 
-            if (attacker->client->pers.statInfo.killsinarow >= 3 && !isCurrentGametype(GT_HNS)) {
-                G_Broadcast(BROADCAST_GAME, NULL, qfalse, "%s\nis on \\fire\nwith %i kills in a row!", attacker->client->pers.netname, attacker->client->pers.statInfo.killsinarow);
+            if (!isCurrentGametypeInList((gameTypes_t[]) { GT_HNS, GT_PROP, GT_HNZ, GT_MAX }) && g_enableKillStreakRewards.integer) {
+                char* rewardName;
+                int rewardWpn = 0;
+                int rewardAmmo = -1;
+                int rewardClip = -1;
+                int rewardAltAmmo = -1;
+                int rewardAltClip = -1;
+                switch (attacker->client->pers.statInfo.killsinarow) {
+                    case 3: 
+                        rewardName = "Claymore";
+                        rewardWpn = WP_L2A2_GRENADE; 
+                        rewardAmmo = 1;
+                        rewardClip = 0;
+                        break;
+                    case 5: 
+                        rewardName = "Airstrike";
+                        rewardWpn = WP_M15_GRENADE; 
+                        rewardAmmo = 1;
+                        rewardClip = 0;
+                        break;
+                    case 7: 
+                        rewardName = "Grenade Launcher";
+                        rewardWpn = WP_MM1_GRENADE_LAUNCHER;
+                        rewardAmmo = 5;
+                        rewardClip = 0;
+                        break;
+                }
+                if (attacker->client->pers.statInfo.killsinarow >= 3 && !isCurrentGametype(GT_HNS)) {
+                    if (rewardWpn != WP_NONE){
+                        giveWeaponWithCustomAmmoToClient(attacker, rewardWpn, qfalse, rewardAmmo, rewardClip, rewardAltAmmo, rewardAltClip);
+                        G_Broadcast(BROADCAST_GAME, NULL, qfalse, "%s\nis on \\fire\nwith %i kills in a row!\nReward: \\%s", attacker->client->pers.netname, attacker->client->pers.statInfo.killsinarow, rewardName);
+
+                    } else {
+                        G_Broadcast(BROADCAST_GAME, NULL, qfalse, "%s\nis on \\fire\nwith %i kills in a row!", attacker->client->pers.netname, attacker->client->pers.statInfo.killsinarow);
+                    }
+                }
+            } else {
+                if (attacker->client->pers.statInfo.killsinarow >= 3 && !isCurrentGametype(GT_HNS)) {
+                    G_Broadcast(BROADCAST_GAME, NULL, qfalse, "%s\nis on \\fire\nwith %i kills in a row!", attacker->client->pers.netname, attacker->client->pers.statInfo.killsinarow);
+                }
             }
+
         }
     }
     else if (mod != MOD_TEAMCHANGE && mod != MOD_TRIGGER_HURT_NOSUICIDE && !isCurrentGametypeInList((gameTypes_t[]) { GT_HNS, GT_HNZ, GT_PROP, GT_MAX })) {

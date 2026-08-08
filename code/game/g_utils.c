@@ -715,6 +715,29 @@ void G_PlayEffect(int fxID, vec3_t org, vec3_t ang)
     }
     te->s.eventParm = fxID;
 }
+/*
+=============
+G_PlayTeamEffect
+=============
+*/
+gentity_t* G_PlayTeamEffect(int fxID, vec3_t org, vec3_t ang, team_t team)
+{
+    gentity_t   *te;
+
+    te = G_TempEntity( org, EV_PLAY_EFFECT );
+    VectorCopy(ang, te->s.angles);
+    VectorCopy(org, te->s.origin);
+    if (fxID == G_EffectIndex("arm2smallsmoke")) {
+        te->s.origin[2] -= 30;
+    }
+    te->s.eventParm = fxID;
+    if (team == TEAM_BLUE) {
+        te->r.svFlags |= SVF_BLUETEAMONLY;
+    } else if(team == TEAM_RED) {
+        te->r.svFlags |= SVF_REDTEAMONLY;
+    }
+    return te;
+}
 
 /*
 =============

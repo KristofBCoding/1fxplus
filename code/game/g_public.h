@@ -21,6 +21,8 @@
 #define SVF_CAPSULE             0x00000400  // use capsule for collision detection instead of bbox
 #define SVF_NOTSINGLECLIENT     0x00000800  // send entity to everyone but one client
                                             // (entityShared_t->singleClient)
+#define SVF_BLUETEAMONLY        0x00010000  // send entity to clients in the blue team
+#define SVF_REDTEAMONLY         0x00020000  // send entity to clients in the red team
 
 #define SVF_GLASS_BRUSH         0x08000000  // Ent is a glass brush
 

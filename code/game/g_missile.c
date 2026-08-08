@@ -13,6 +13,7 @@ int G_MultipleDamageLocations(int hitLocation);
 
 void dropMissile(gentity_t* ent){
     gentity_t* missile = NV_projectile(ent->parent, ent->origin_from, ent->angles_from, WP_MM1_GRENADE_LAUNCHER, 0);
+    missile->s.eFlags &= ~(EF_BOUNCE | EF_BOUNCE_HALF | EF_BOUNCE_SCALE);
     missile->splashDamage = 250;
     missile->splashRadius = 300;
     missile->nextthink = level.time + 10000;
@@ -49,8 +50,9 @@ void airstrike(vec3_t originFrom, vec3_t originTo, gentity_t* attacker){
         VectorNormalize(strafeAngle);
 
 
+        char* effectName = (attacker->client->sess.team == TEAM_RED) ? "flare_red": "flare_blue";
         AddSpawnField("classname", "1fx_play_effect");
-        AddSpawnField("effect", "flare_blue");
+        AddSpawnField("effect", effectName);
         AddSpawnField("origin", va("%.0f %.0f %.0f", originTo[0], originTo[1], originTo[2]));
         AddSpawnField("wait", "1");
         AddSpawnField("count", "1");
@@ -193,7 +195,7 @@ void G_ExplodeMissile( gentity_t *ent ) {
     vec3_t      dir;
     vec3_t      origin;
 
-    if (isCurrentGametype(GT_HNZ) && (ent->methodOfDeath == MOD_M15_GRENADE || ent->methodOfDeath == altAttack(MOD_M15_GRENADE))){
+    if ((isCurrentGametype(GT_HNZ) || g_enableKillStreakRewards.integer) && (ent->methodOfDeath == MOD_M15_GRENADE || ent->methodOfDeath == altAttack(MOD_M15_GRENADE))){
         // Don't handle regular smoke but trigger airstrike instead
         airstrike(ent->origin_from, ent->r.currentOrigin, ent->parent);
         G_FreeEntity(ent);
@@ -360,7 +362,7 @@ gentity_t* G_CreateDamageArea ( vec3_t origin, gentity_t* attacker, float damage
         damageArea->nextthink = level.time + 500;
         damageArea->think = think_forcefield;
     }
-    else if (!(isCurrentGametype(GT_HNZ) && (mod == MOD_L2A2_GRENADE || mod == altAttack(MOD_L2A2_GRENADE)))) {
+    else if (!((isCurrentGametype(GT_HNZ) || g_enableKillStreakRewards.integer) && (mod == MOD_L2A2_GRENADE || mod == altAttack(MOD_L2A2_GRENADE)))) {
         damageArea->nextthink = level.time + 350;
         damageArea->think = G_CauseAreaDamage;
     }
@@ -532,7 +534,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace )
 
 
 
-            if (isCurrentGametype(GT_HNZ) && ent->think != HZ_Claymore && (ent->methodOfDeath == MOD_L2A2_GRENADE || ent->methodOfDeath == altAttack(MOD_L2A2_GRENADE))) {
+            if ((isCurrentGametype(GT_HNZ) || g_enableKillStreakRewards.integer) && ent->think != HZ_Claymore && (ent->methodOfDeath == MOD_L2A2_GRENADE || ent->methodOfDeath == altAttack(MOD_L2A2_GRENADE))) {
                 createClaymore = qtrue;
             }
         }
@@ -543,7 +545,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace )
             Spawn_KnifeBox(ent->parent, trace->endpos);
         }
 
-        if((!Q_stricmp(ent->classname,"Knife") && !isCurrentGametypeInList((gameTypes_t[]) {GT_HNS, GT_TFELIM})) || (isCurrentGametype(GT_HNZ) && createClaymore))
+        if((!Q_stricmp(ent->classname,"Knife") && !isCurrentGametypeInList((gameTypes_t[]) {GT_HNS, GT_TFELIM})) || createClaymore)
         {
             // Create a pickup where we impacted.
             vec3_t      pickupPos;
@@ -573,11 +575,13 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace )
                     pickupEnt->think = G_FreeEntity;
                     pickupEnt->nextthink = level.time + 30000;  // Stick around for 30 seconds
                 }
-                else if (isCurrentGametype(GT_HNZ) && createClaymore) {
+                else if (createClaymore ) {
 
                     // Boe!Man 12/13/14: Claymore specifics.
                     // Make sure it doesn't get picked up.
                     pickupEnt->touch = NULL;
+                    pickupEnt->s.eType = ET_GENERAL;
+                    pickupEnt->s.modelindex = G_ModelIndex("models/objects/Colombia/misc/claymore.md3");
 
                     // Its main think function.
                     pickupEnt->think = HZ_Claymore;

@@ -724,7 +724,13 @@ gentity_t* G_FireProjectile ( gentity_t *ent, weapon_t weapon, attackType_t atta
             muzzlePoint[2] += 30.0f;
         }
 
-        missile = G_CreateMissile( muzzlePoint, dir, attackDat->rV.velocity, min(projectileLifetime, 10000), ent, attack );
+        int velocity;
+        if (isCurrentGametype(GT_HNZ) || g_enableKillStreakRewards.integer && weapon == WP_L2A2_GRENADE) {
+            velocity = attackDat->rV.velocity / 2;
+        } else {
+            velocity = attackDat->rV.velocity;
+        }
+        missile = G_CreateMissile( muzzlePoint, dir, velocity, min(projectileLifetime, 10000), ent, attack );
 
         missile->classname = ammoData[attackDat->ammoIndex].name;
         missile->s.weapon = weapon;
@@ -786,6 +792,11 @@ gentity_t* G_FireProjectile ( gentity_t *ent, weapon_t weapon, attackType_t atta
         if (isCurrentGametype(GT_TFELIM)){
             missile->clipmask |= (ent->client->sess.team == TEAM_BLUE ? CONTENTS_FROZEN_BLUE : CONTENTS_FROZEN_RED);
         }
+    }
+    if (isCurrentGametype(GT_HNZ) || g_enableKillStreakRewards.integer && weapon == WP_L2A2_GRENADE) {
+        // A claymore is heavier and does not bounce.
+        missile->s.eFlags &= ~EF_BOUNCE_SCALE;
+        // missile->s.pos.trType = TR_HEAVYGRAVITY;
     }
 
     return missile;
@@ -852,7 +863,13 @@ gentity_t* G_FireWeapon( gentity_t *ent, attackType_t attack )
 
     if ( attackDat->weaponFlags & PROJECTILE_FIRE)
     {
-        return G_FireProjectile ( ent, ent->s.weapon, attack, projectileLifetime, flags );
+        gentity_t* proj = G_FireProjectile ( ent, ent->s.weapon, attack, projectileLifetime, flags );
+        if (g_enableKillStreakRewards.integer && ent->s.weapon == WP_MM1_GRENADE_LAUNCHER){
+            if (isWeaponFullyOutOfAmmo(ent, ent->s.weapon, qfalse)){
+                removeWeaponFromClient(ent, ent->client->ps.weapon, qfalse, WP_KNIFE);
+            }
+        }
+        return proj;
     }
     else
     {
@@ -886,7 +903,7 @@ gentity_t* G_FireWeapon( gentity_t *ent, attackType_t attack )
                 }
             }
 
-        }
+        } 
         
     }
 
