@@ -106,6 +106,10 @@ vmCvar_t    g_rconPrefix;
 vmCvar_t    g_inviewFile;
 vmCvar_t    g_weaponFile;
 
+vmCvar_t    g_enableDeathHealthPack;
+vmCvar_t    g_deathHealthPackAmount;
+vmCvar_t    g_deathHealthPackTime;
+
 // Admin permissions.
 vmCvar_t    a_adminlist;
 vmCvar_t    a_badmin;
@@ -482,6 +486,9 @@ static cvarTable_t gameCvarTable[] =
     { &g_inviewFile,    "g_inviewFile",     "ext_data/SOF2.inview",        CVAR_ARCHIVE | CVAR_LATCH,   0.0f,   0.0f,   0,  qfalse },
 
     { &g_weaponFile,    "g_weaponFile",     "ext_data/SOF2.wpn",        CVAR_ARCHIVE | CVAR_LATCH,   0.0f,   0.0f,   0,  qfalse },
+    { &g_enableDeathHealthPack,    "g_enableDeathHealthPack",     "0",        CVAR_ARCHIVE,   0.0f,   0.0f,   0,  qfalse },
+    { &g_deathHealthPackAmount,    "g_deathHealthPackAmount",     "50",        CVAR_ARCHIVE,   0.0f,   0.0f,   0,  qfalse },
+    { &g_deathHealthPackTime,    "g_deathHealthPackTime",     "30",        CVAR_ARCHIVE,   0.0f,   0.0f,   0,  qfalse },
 
     // Admin cvars
     { &a_adminlist,    "a_adminlist",     "2",        CVAR_ARCHIVE,   0.0f,   0.0f,   0,  qfalse },

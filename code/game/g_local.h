@@ -1723,6 +1723,10 @@ extern  vmCvar_t    g_inviewFile;
 
 extern  vmCvar_t    g_weaponFile;
 
+extern  vmCvar_t    g_enableDeathHealthPack;
+extern  vmCvar_t    g_deathHealthPackAmount;
+extern  vmCvar_t    g_deathHealthPackTime;
+
 extern vmCvar_t    a_adminlist;
 extern vmCvar_t    a_badmin;
 extern vmCvar_t    a_admin;

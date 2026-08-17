@@ -204,6 +204,23 @@ void frozenPlayerDeath( gentity_t *self, gentity_t *inflictor, gentity_t *attack
     return;
 }
 
+void tempHealthPackThink(gentity_t *ent){
+    ent->s.eFlags ^= EF_NODRAW;
+    ent->nextthink = level.time + 500;
+    if (ent->nextthink >= ent->setTime){
+        G_FreeEntity(ent);
+    }
+}
+void spawnHealthPack(vec3_t loc){
+    vec3_t up = {0, 0, 200};
+    gentity_t* ent = LaunchItem(BG_FindItem("Large Health"), loc, up);
+    // gentity_t* ent = G_SpawnGametypeItem("Large Health", qtrue, loc);
+    ent->count = g_deathHealthPackAmount.integer;
+    ent->setTime = level.time +  g_deathHealthPackTime.integer * 1000;
+    ent->think = tempHealthPackThink;
+    ent->nextthink = max(level.time, ent->setTime - 5000);
+}
+
 static vec3_t   playerMins = {-15, -15, -46};
 static vec3_t   playerMaxs = {15, 15, 48};
 
@@ -658,10 +675,13 @@ void player_die(
     contents = trap_PointContents( self->r.currentOrigin, -1 );
     if ( !isCurrentGametype(GT_TFELIM) && !( contents & CONTENTS_NODROP ))
     {
-        // People who kill themselves dont drop guns
+        // People who kill themselves dont drop guns or health
         if (  attacker != self || isCurrentGametype(GT_HNS))
         {
             TossClientItems( self );
+            if (g_enableDeathHealthPack.integer) {
+                spawnHealthPack(self->r.currentOrigin);
+            }
         }
 
     }
